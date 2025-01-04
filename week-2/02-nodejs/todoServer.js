@@ -99,8 +99,8 @@ app.delete("/todos/:id", function (req, res) {
   }
 });
 
-app.use(function(req, res) {
-  res.status(404).json({ error: "Route not found" });
+app.all('*', (req, res) => {
+  res.status(404).send('Route not found');
 });
 
 // app.listen(3000);
