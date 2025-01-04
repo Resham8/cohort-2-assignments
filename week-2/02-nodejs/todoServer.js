@@ -44,35 +44,64 @@ const bodyParser = require("body-parser");
 
 const app = express();
 app.use(bodyParser.json());
-let todos = [
-  {
-    id : "1",
-    title: "",
-    describe: "",
-    isCompleted: false,
-  },
-  {
-    id : "2",
-    title: "test1",
-    describe: "test3",
-    isCompleted: true,
-  }
-];
+let todos = [];
+
+let idCounter = 1;
 
 app.get("/todos", function (req, res) {
   res.json(todos);
 });
 
-app.get("/todos/:id", function(req, res){  
-  const todoById = todos.find(todo => todo.id === req.params.id); 
-
-  if(todoById){
-    res.json(todoById)
+app.get("/todos/:id", function (req, res) {
+  const todoById = todos.find((todo) => todo.id === parseInt(req.params.id));
+  if (todoById) {
+    res.json(todoById);
   } else {
     res.status(404).json({ error: "Todo not found" });
-  }  
+  }
+});
 
-})
 
-app.listen(3000);
+app.post("/todos", function (req, res) {
+  const { title, description, isCompleted } = req.body;
+  const newTodo = {
+    id: idCounter++,
+    title,
+    description,
+    isCompleted: isCompleted || false,
+  };
+  todos.push(newTodo);
+  res.status(201).json({ id: newTodo.id });
+});
+
+app.put("/todos/:id", function (req, res) {
+  const todoIndex = todos.findIndex((todo) => todo.id === parseInt(req.params.id));
+  if (todoIndex !== -1) {
+    todos[todoIndex] = {
+      ...todos[todoIndex],
+      title: req.body.title,
+      description: req.body.description,
+      isCompleted: req.body.isCompleted || false,
+    };
+    res.json({ msg: "Todo updated successfully", todo: todos[todoIndex] });
+  } else {
+    res.status(404).json({ error: "Todo Id not found" });
+  }
+});
+
+app.delete("/todos/:id", function (req, res) {
+  const todoId = todos.findIndex((todo) => todo.id === parseInt(req.params.id));
+  if (todoId !== -1) {
+    todos.splice(todoId, 1);
+    res.json({ msg: "Deleted" });
+  } else {
+    res.status(404).json({ error: "Todo Id not found" });
+  }
+});
+
+app.use(function(req, res) {
+  res.status(404).json({ error: "Route not found" });
+});
+
+// app.listen(3000);
 module.exports = app;
